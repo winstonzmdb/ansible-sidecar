@@ -1,0 +1,17 @@
+---
+- name: Start Docker container
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Start Docker container
+      community.docker.docker_container:
+        name: ubuntu_container
+        image: ubuntussh
+        state: started
+        command: sleep infinity
+        ports:
+        - "2222:22"
+    - name: Start the SSH service
+      community.docker.docker_container_exec:
+        container: ubuntu_container
+        command: service ssh start

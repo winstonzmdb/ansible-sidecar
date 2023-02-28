@@ -1,0 +1,14 @@
+  - include_role:
+      name: clerk
+  - name: show
+    debug:
+      msg: help me
+  - name: new task
+    debug:
+      msg: another 3
+  - name: list files
+    shell: ls
+    register: out
+  - name: show me
+    debug:
+      var: out
