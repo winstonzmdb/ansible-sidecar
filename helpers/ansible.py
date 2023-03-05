@@ -1,10 +1,13 @@
 # function to create a new playbook file with the changed task and run it
 import os
+import copy
 import logging
 from pprint import pprint
+from ruamel.yaml import YAML
+yaml = YAML()
 import shutil
 import subprocess
-from helpers.constants import DELTA_PLAYBOOK_PATH, NEW_PLAYBOOK_PATH
+from helpers.constants import DELTA_PLAYBOOK_PATH, EC2_PLAYBOOK_PATH, NEW_PLAYBOOK_PATH
 from helpers.fileIO import copy_roles_folder, hash_file, read_playbook, write_playbook
 
 # function that writes the task to the cache playbook
@@ -88,6 +91,40 @@ def get_playbook_tasks(original_playbook_path):
     return tasks
 
 def call_playbook(playbook):
-    subprocess.check_call(f"ansible-playbook {playbook}", shell=True)
+    command = f"ansible-playbook {playbook}"
+    logging.info(f"Ansible command: {command}")
+    subprocess.check_call(command, shell=True)
     logging.info(f"Monitoring for changes...")
 
+
+def create_new_ec2_playbook(playbook_path):
+    # Load the original playbook
+    playbook = read_playbook(playbook_path)
+
+    # Extract the host vars from the original playbook
+    for section in ['tasks', 'roles']:
+        playbook.pop(section, None)
+
+    playbook['hosts'] = 'ec2'
+    playbook['roles'] = [{'role': 'changes'}]
+    new_playbook = copy.deepcopy(playbook)
+
+    # Add a new play to the beginning of the playbook
+    add_host_play = {
+        'hosts': 'localhost',
+        'gather_facts': False,
+        'tasks': [{
+            'name': 'Add EC2 instance as host',
+            'ansible.builtin.add_host': {
+                'name': '{{ target }}',
+                'groups': 'ec2',
+                'ansible_user': '{{ user }}'
+            }
+        }]
+    }
+
+    # Insert the new play at the beginning of the original playbook
+    new_playbook = [add_host_play,playbook]
+    # Save the updated playbook to a file
+    with open(EC2_PLAYBOOK_PATH, 'w') as file:
+        yaml.dump(new_playbook, file)

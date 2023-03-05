@@ -5,7 +5,7 @@ from helpers.constants import DELTA_PLAYBOOK_PATH
 from helpers.fileIO import delete_folders_except_changes, process_parameter
 
 from helpers.watcher import start_monitoring
-from helpers.ansible import create_new_playbook, call_playbook, get_playbook_tasks, roles_modified, task_modified
+from helpers.ansible import create_new_ec2_playbook, create_new_playbook, call_playbook, get_playbook_tasks, roles_modified, task_modified
 
 # define command-line arguments
 parser = argparse.ArgumentParser()
@@ -31,7 +31,9 @@ user = process_parameter(args,"user")
 identity_file = process_parameter(args,"identity_file")
 
 # define the playbook command-line
-template_playbook = "docker_playbook.yml" if image == None else f"ec2_playbook.yml -e target={image} -e user={user} -e identity_file={identity_file}"
+identity_file_parameter_str = f"-e identity_file={identity_file}" if identity_file != None else ""
+user_parameter_str = f"-e user={user}" if user != None else ""
+template_playbook = "docker_playbook.yml" if image == None else f"ec2_playbook.yml -e target={image} {user_parameter_str} {identity_file_parameter_str}"
 
 def initialize():
     logging.info(f"Intializing - Fetching the playbook")
@@ -41,6 +43,7 @@ def initialize():
     # Copy the source playbook to cache
     tasks = get_playbook_tasks(playbook_path)
     create_new_playbook(tasks,playbook_path)
+    create_new_ec2_playbook(playbook_path)
 
     if args.image == "":
         logging.info(f"Intializing - Starting the container")
@@ -84,10 +87,9 @@ if __name__ == "__main__":
         print("Please provide the path to the original playbook using the -p or --playbook flag.")
         exit()
 
-    if args.image != None and args.user == None:
+    if image != None and user == None:
         print("Please provide a username to the instance using the -u or --user flag.")
         exit()
-
 
     initialize()
     start_monitoring(handle_event,playbook_path)
