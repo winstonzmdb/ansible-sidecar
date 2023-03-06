@@ -6,3 +6,5 @@ __pycache__
 delta_playbook.yml
 ec2_playbook.yml
 roles/changes/
+run.sh
+config.ini
