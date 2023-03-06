@@ -1,4 +1,5 @@
 import os
+from pprint import pprint
 import shutil
 import hashlib
 import configparser
@@ -8,19 +9,29 @@ yaml = YAML()
 roles_path = os.getcwd()+"/roles"
 
 def write_playbook(playbook, path):
-  with open(path, "w") as f:
-      yaml.indent(sequence=4, offset=2)
-      out = Path(path)
-      yaml.dump(playbook, out)
+    try:
+        with open(path, "w") as f:
+            yaml.indent(sequence=4, offset=2)
+            out = Path(path)
+            yaml.dump(playbook, out)
+    except:
+        raise Exception(f"Could not write to {path}")
 
 def read_playbook(path):
-    # read the original playbook file
-    with open(path, "r") as f:
-        playbook_content = f.read()
+    try:
+        # read the original playbook file
+        with open(path, "r") as f:
+            playbook_content = f.read()
 
-    # load the playbook content as a dictionary
-    playbook = yaml.load(playbook_content)
-    return playbook[0]
+        # load the playbook content as a dictionary
+        playbook = yaml.load(playbook_content)
+        return playbook[0]
+    except:
+        raise Exception(f"Could not find {path}")
+
+def get_abs_path(path):
+    absolute_path = os.path.abspath(path)
+    return absolute_path
 
 def process_parameter(args,param):
     value = getattr(args, param)
@@ -36,6 +47,7 @@ def process_parameter(args,param):
 
 def delete_folders_except_changes():
     # Get the list of folders in the directory
+    if not os.path.exists(roles_path): return
     folders = os.listdir(roles_path)
     
     # Loop through the folders and delete any that are not named 'changes'
