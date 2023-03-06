@@ -8,6 +8,9 @@ It monitors an Ansible playbook and detects changes to yaml files that folder. W
 This application is written in Python. The following pip modules are also required.
 ```pip3 install watchdog ruamel.yaml```
 
+you can install them via ```pip3 install -r requirements.txt```
+
+
 # command-line parameters
 playbook - `-p` - path to the original playbook.  
 image - `-i` - name of the EC2 instance to use.  
@@ -16,7 +19,7 @@ identity_file - `-k` - user ssh identity file.
 skip - skip the inital full playbook execution   
 
 # example - command-line
-```python3 main.py -p /path/to/playbook/playbook.yml -i aws.dns.amazonaws.com -u Administrator```
+```python3 main.py -p example/example-playbook.yml -i aws.dns.amazonaws.com -u Administrator -k /path/to/privkey```
 
 # config file
 The parameters can be stored in a config file (`config.ini`) instead of command-line parameters.

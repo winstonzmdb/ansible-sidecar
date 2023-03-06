@@ -1,0 +1,20 @@
+---
+- hosts: all
+  tasks:
+    # - include_role:
+    #     name: clerk
+     - name: show
+       debug:
+         msg: "help me"
+     - name: new task
+       debug:
+         msg: "thank you sir may I have another"
+     - name: list files
+       shell: ls /
+       register: out
+    # - name: show me
+    #   debug:
+    #     var: out
+    # - name: new task3
+    #   debug:
+    #     msg: "New task!"

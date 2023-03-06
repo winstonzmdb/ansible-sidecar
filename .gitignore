@@ -1,0 +1,8 @@
+*.swp
+venv
+
+## files modified or created during runtime
+__pycache__
+delta_playbook.yml
+ec2_playbook.yml
+roles/changes/
