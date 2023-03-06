@@ -30,7 +30,8 @@ def read_playbook(path):
         raise Exception(f"Could not find {path}")
 
 def get_abs_path(path):
-    absolute_path = os.path.abspath(path)
+    user_path = os.path.expanduser(path)
+    absolute_path = os.path.abspath(user_path)
     return absolute_path
 
 def process_parameter(args,param):
