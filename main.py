@@ -2,7 +2,7 @@ import argparse
 import logging
 from pprint import pprint
 from helpers.constants import DELTA_PLAYBOOK_PATH
-from helpers.fileIO import delete_folders_except_changes, process_parameter
+from helpers.fileIO import delete_folders_except_changes, get_abs_path, process_parameter
 
 from helpers.watcher import start_monitoring
 from helpers.ansible import create_new_ec2_playbook, create_new_playbook, call_playbook, get_playbook_tasks, roles_modified, task_modified
@@ -25,7 +25,8 @@ logging.basicConfig(
 
 
 # assign command-line arguments to variables
-playbook_path = process_parameter(args,"playbook")
+playbook_relative_path = process_parameter(args,"playbook")
+playbook_path = get_abs_path(playbook_relative_path)
 image = process_parameter(args,"image")
 user = process_parameter(args,"user")
 identity_file = process_parameter(args,"identity_file")
