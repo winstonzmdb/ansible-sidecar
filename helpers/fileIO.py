@@ -60,7 +60,9 @@ def delete_folders_except_changes():
                 
 def copy_roles_folder(playbook_path):
     root_folder_path = os.path.dirname(playbook_path)
-    shutil.copytree(root_folder_path+"/roles", os.getcwd()+"/roles", dirs_exist_ok = True)
+    src_roles_folder = root_folder_path+"/roles"
+    if not os.path.exists(src_roles_folder): return
+    shutil.copytree(src_roles_folder, os.getcwd()+"/roles", dirs_exist_ok = True)
 
 # Function to compute the SHA-256 hash of a file
 def hash_file(filename):
