@@ -7,6 +7,7 @@
     ansible_port: 2222
     ansible_python_interpreter: /usr/bin/python3
   gather_facts: true
+  ignore_errors: true
   tasks:
     - include_role:
         name: changes

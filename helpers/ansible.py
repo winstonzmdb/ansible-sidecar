@@ -44,7 +44,7 @@ def task_modified(original_playbook_path,new_roles):
         diff_tasks.append(task)
         updated_vars = getUpdatedVariables(task)
         diff_vars.extend(updated_vars)
-        
+
     print(diff_vars)
     return diff_tasks
 
@@ -122,6 +122,7 @@ def call_playbook(playbook):
 add_host_play = {
     'hosts': 'localhost',
     'gather_facts': False,
+    'ignore_errors': True,
     'tasks': [{
         'name': 'Add EC2 instance as host',
         'ansible.builtin.add_host': {
