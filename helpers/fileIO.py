@@ -4,6 +4,7 @@ import shutil
 import hashlib
 import configparser
 from ruamel.yaml import YAML
+from collections.abc import MutableMapping
 from pathlib import Path
 yaml = YAML()
 roles_path = os.getcwd()+"/roles"
@@ -71,3 +72,29 @@ def hash_file(filename):
         buf = f.read()
         hasher.update(buf)
     return hasher.hexdigest()
+
+def _flatten_dict_gen(d, parent_key, sep):
+    for k, v in d.items():
+        new_key = parent_key + sep + k if parent_key else k
+        if isinstance(v, MutableMapping):
+            yield from flatten_dict(v, new_key, sep=sep).items()
+        else:
+            yield new_key, v
+
+
+def flatten_dict(d: MutableMapping, parent_key: str = '', sep: str = '.'):
+    return dict(_flatten_dict_gen(d, parent_key, sep))
+
+def check_list_overlap(list1, list2):
+    for item in list1:
+        if item in list2:
+            return True
+    return False
+
+def check_list_variable_existance(list1, list2):
+    for item1 in list1:
+        for item2 in list2:
+            # if f"{{ {item1} " in item2:
+            if item1 in item2:
+                return True
+    return False

@@ -8,7 +8,7 @@ yaml = YAML()
 import shutil
 import subprocess
 from helpers.constants import DELTA_PLAYBOOK_PATH, EC2_PLAYBOOK_PATH, NEW_PLAYBOOK_PATH
-from helpers.fileIO import copy_roles_folder, hash_file, read_playbook, write_playbook
+from helpers.fileIO import check_list_overlap, check_list_variable_existance, copy_roles_folder, flatten_dict, hash_file, read_playbook, write_playbook
 
 # function that writes the task to the cache playbook
 def create_new_playbook(tasks,original_playbook_path):
@@ -34,8 +34,31 @@ def task_modified(original_playbook_path,new_roles):
     tasks2 = get_playbook_tasks(DELTA_PLAYBOOK_PATH)
 
     # Find the tasks that are different
-    diff_tasks = [task for task in tasks1 if task not in tasks2 or task in new_roles]
+    diff_tasks = []
+    diff_vars = []
+    for task in tasks1:
+        if (task_contains_variable(diff_vars,task)):
+            diff_tasks.append(task)
+            continue
+        if task in tasks2 and task not in new_roles: continue
+        diff_tasks.append(task)
+        updated_vars = getUpdatedVariables(task)
+        diff_vars.extend(updated_vars)
+        
+    print(diff_vars)
     return diff_tasks
+
+def task_contains_variable(vars,task):
+    flat = flatten_dict(task)
+    values = (list(flat.values()))
+    return check_list_variable_existance(vars,values)
+
+def getUpdatedVariables(task):
+    if ("register" in task):
+        return [task["register"]]
+    if ("set_fact" in task):
+        return list(task["set_fact"].keys())
+    return []
 
 def retrieve_roles(playbook_path,role_name):
     playbook = get_playbook_tasks(playbook_path)
@@ -96,6 +119,18 @@ def call_playbook(playbook):
     subprocess.check_call(command, shell=True)
     logging.info(f"Monitoring for changes...")
 
+add_host_play = {
+    'hosts': 'localhost',
+    'gather_facts': False,
+    'tasks': [{
+        'name': 'Add EC2 instance as host',
+        'ansible.builtin.add_host': {
+            'name': '{{ target }}',
+            'groups': 'ec2',
+            'ansible_user': '{{ user }}'
+        }
+    }]
+}
 
 def create_new_ec2_playbook(playbook_path):
     # Load the original playbook
@@ -108,20 +143,6 @@ def create_new_ec2_playbook(playbook_path):
     playbook['hosts'] = 'ec2'
     playbook['roles'] = [{'role': 'changes'}]
     new_playbook = copy.deepcopy(playbook)
-
-    # Add a new play to the beginning of the playbook
-    add_host_play = {
-        'hosts': 'localhost',
-        'gather_facts': False,
-        'tasks': [{
-            'name': 'Add EC2 instance as host',
-            'ansible.builtin.add_host': {
-                'name': '{{ target }}',
-                'groups': 'ec2',
-                'ansible_user': '{{ user }}'
-            }
-        }]
-    }
 
     # Insert the new play at the beginning of the original playbook
     new_playbook = [add_host_play,playbook]
