@@ -6,7 +6,7 @@ It monitors an Ansible playbook and detects changes to yaml files that folder. W
 
 # dependencies
 This application is written in Python. The following pip modules are also required.
-```pip3 install watchdog ruamel.yaml```
+```pip3 install watchdog ruamel.yaml ansible```
 
 you can install them via ```pip3 install -r requirements.txt```
 
