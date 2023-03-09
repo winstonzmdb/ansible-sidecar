@@ -9,12 +9,18 @@
      - name: new task
        debug:
          msg: "thank you sir may I have another"
-     - name: list files
-       shell: ls /
-       register: out
-    # - name: show me
-    #   debug:
-    #     var: out
+    - name: list files
+      shell: ls /
+      register: out
+    - name: show me
+      debug:
+        var: out
+    - name: facts
+      set_fact:
+        test: hello
+    - name: show hello
+      debug:
+        msg: "{{ test }} world!"
     # - name: new task3
     #   debug:
     #     msg: "New task!"
