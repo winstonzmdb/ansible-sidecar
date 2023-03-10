@@ -2,7 +2,6 @@
 import os
 import copy
 import logging
-from pprint import pprint
 from ruamel.yaml import YAML
 yaml = YAML()
 import shutil
@@ -30,8 +29,11 @@ def copy_task(task):
 def task_modified(original_playbook_path,new_roles):
     def diff_append(task,var=None):
         diff_tasks.append(task)
-        if (var):
+        if var == None: return
+        if isinstance(var, str):
             diff_vars.append(var)
+            return
+        diff_vars.extend(list(var))
 
     # Load the contents of the two playbooks
     tasks1 = get_playbook_tasks(original_playbook_path)
@@ -41,7 +43,7 @@ def task_modified(original_playbook_path,new_roles):
     diff_tasks = []
     diff_vars = []
     all_vars_tasks = get_all_variable_tasks(tasks1)
-    all_vars = all_vars_tasks.keys()
+    all_vars = list(all_vars_tasks.keys())
 
     for task in tasks1:
         # Check if task contains variables in the diff_vars list
@@ -60,7 +62,7 @@ def task_modified(original_playbook_path,new_roles):
 
         # Append the required set_facts/register tasks
         found_var = task_contains_variable(all_vars,task)
-        if found_var not in diff_vars:
+        if found_var not in diff_vars and found_var in all_vars_tasks:
             diff_append(all_vars_tasks[found_var],found_var)
 
         diff_append(task)
@@ -93,7 +95,7 @@ def retrieve_roles(playbook_path,role_name):
     playbook = get_playbook_tasks(playbook_path)
     role_tag = "include_role"
     for task in playbook:
-        if task[role_tag]["name"] == role_name:
+        if role_tag in task and task[role_tag]["name"] == role_name:
             return task
 
 # Function to extract the roles and their corresponding tasks from a playbook
