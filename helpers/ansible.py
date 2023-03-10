@@ -28,6 +28,10 @@ def copy_task(task):
 
 # function to check if a task has been modified
 def task_modified(original_playbook_path,new_roles):
+    def diff_append(task,var=None):
+        diff_tasks.append(task)
+        if (var):
+            diff_vars.append(var)
 
     # Load the contents of the two playbooks
     tasks1 = get_playbook_tasks(original_playbook_path)
@@ -35,48 +39,50 @@ def task_modified(original_playbook_path,new_roles):
 
     # Initialize lists and dictionary for variable tracking
     diff_tasks = []
-    all_vars = []
-    all_vars_tasks = {}
     diff_vars = []
+    all_vars_tasks = get_all_variable_tasks(tasks1)
+    all_vars = all_vars_tasks.keys()
 
     for task in tasks1:
         # Check if task contains variables in the diff_vars list
         if task_contains_variable(diff_vars,task) != None:
-            diff_tasks.append(task)
+            diff_append(task)
             continue
 
-        # Check if task defines variables
-        updated_vars = getUpdatedVariables(task)
-        if len(updated_vars):
-            for updated_var in updated_vars:
-                all_vars.append(updated_var)
-                all_vars_tasks[updated_var] = task
-
-        # Check if task is in the delta playbook or new_roles list
+        # Check if task is not updated
         if task in tasks2 and task not in new_roles: continue
 
-        # Check if task contains updated variables
+        # Check if task updates variables
+        updated_vars = get_updated_variables(task)
         if len(updated_vars):
-            diff_vars.extend(updated_vars)
-            diff_tasks.append(task)
+            diff_append(task,updated_vars)
             continue
 
-        # Check if task contains previously seen variables
+        # Append the required set_facts/register tasks
         found_var = task_contains_variable(all_vars,task)
         if found_var not in diff_vars:
-            diff_vars.append(found_var)
-            diff_tasks.append(all_vars_tasks[found_var])
+            diff_append(all_vars_tasks[found_var],found_var)
 
-        diff_tasks.append(task)
+        diff_append(task)
 
     return diff_tasks
+
+
+def get_all_variable_tasks(tasks):
+    all_vars_tasks = {}
+    for task in tasks:
+        updated_vars = get_updated_variables(task)
+        if len(updated_vars):
+            for updated_var in updated_vars:
+                all_vars_tasks[updated_var] = task
+    return all_vars_tasks
 
 def task_contains_variable(vars,task):
     flat = flatten_dict(task)
     values = (list(flat.values()))
     return check_list_variable_existance(vars,values)
 
-def getUpdatedVariables(task):
+def get_updated_variables(task):
     if ("register" in task):
         return [task["register"]]
     if ("set_fact" in task):
