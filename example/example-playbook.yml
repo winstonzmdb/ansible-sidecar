@@ -1,26 +1,22 @@
 ---
 - hosts: all
+  gather_facts: false
   tasks:
-    # - include_role:
-    #     name: clerk
-     - name: show
-       debug:
-         msg: "help me"
-     - name: new task
-       debug:
-         msg: "thank you sir may I have another"
-    - name: list files
-      shell: ls /
-      register: out
-    - name: show me
+    - name: List Files
+      shell: ls .
+      register: file_list
+    - name: Show List of Files
       debug:
-        var: out
+        msg: "{{ file_list.stdout_lines }}"
     - name: facts
       set_fact:
-        test: hello
-    - name: show hello
+        greeting_var: hello
+        goodbye_var: goodbye
+    - name: Say Hello
       debug:
-        msg: "{{ test }} world!"
-    # - name: new task3
-    #   debug:
-    #     msg: "New task!"
+        msg: "{{ greeting_var }} world!"
+    - name: Say Goodbye
+      debug:
+        msg: "{{ goodbye_var }} world!"
+    - include_role:
+        name: hello
