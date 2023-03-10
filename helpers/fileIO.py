@@ -96,5 +96,5 @@ def check_list_variable_existance(list1, list2):
         for item2 in list2:
             # if f"{{ {item1} " in item2:
             if item1 in item2:
-                return True
-    return False
+                return item1
+    return None

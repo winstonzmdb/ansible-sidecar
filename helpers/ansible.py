@@ -33,19 +33,42 @@ def task_modified(original_playbook_path,new_roles):
     tasks1 = get_playbook_tasks(original_playbook_path)
     tasks2 = get_playbook_tasks(DELTA_PLAYBOOK_PATH)
 
-    # Find the tasks that are different
+    # Initialize lists and dictionary for variable tracking
     diff_tasks = []
+    all_vars = []
+    all_vars_tasks = {}
     diff_vars = []
+
     for task in tasks1:
-        if (task_contains_variable(diff_vars,task)):
+        # Check if task contains variables in the diff_vars list
+        if task_contains_variable(diff_vars,task) != None:
             diff_tasks.append(task)
             continue
-        if task in tasks2 and task not in new_roles: continue
-        diff_tasks.append(task)
-        updated_vars = getUpdatedVariables(task)
-        diff_vars.extend(updated_vars)
 
-    print(diff_vars)
+        # Check if task defines variables
+        updated_vars = getUpdatedVariables(task)
+        if len(updated_vars):
+            for updated_var in updated_vars:
+                all_vars.append(updated_var)
+                all_vars_tasks[updated_var] = task
+
+        # Check if task is in the delta playbook or new_roles list
+        if task in tasks2 and task not in new_roles: continue
+
+        # Check if task contains updated variables
+        if len(updated_vars):
+            diff_vars.extend(updated_vars)
+            diff_tasks.append(task)
+            continue
+
+        # Check if task contains previously seen variables
+        found_var = task_contains_variable(all_vars,task)
+        if found_var not in diff_vars:
+            diff_vars.append(found_var)
+            diff_tasks.append(all_vars_tasks[found_var])
+
+        diff_tasks.append(task)
+
     return diff_tasks
 
 def task_contains_variable(vars,task):
