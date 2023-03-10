@@ -56,7 +56,6 @@ def initialize():
 
 # function to handle file system events
 def handle_event(event):
-    pprint(event)
     if event.is_directory: return
     # check if the modified file is the original playbook
     if not event.src_path.endswith(".yml"): return
